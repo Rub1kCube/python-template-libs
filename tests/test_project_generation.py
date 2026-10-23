@@ -8,13 +8,8 @@ https://github.com/pydanny/cookiecutter-django/blob/master/tests
 
 import os
 import re
-import subprocess
-import sys
-import tarfile
 import tomllib
-import zipfile
 from datetime import UTC, datetime
-from email import message_from_bytes
 from pathlib import Path
 from typing import Any, Final
 
