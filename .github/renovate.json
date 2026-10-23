@@ -1,0 +1,10 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:recommended", ":semanticCommits", "schedule:weekly"],
+  "enabledManagers": ["pep621", "github-actions"],
+  "includePaths": ["pyproject.toml", "uv.lock", ".github/workflows/**"],
+  "prConcurrentLimit": 10,
+  "lockFileMaintenance": {
+    "enabled": true
+  }
+}

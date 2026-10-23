@@ -1,0 +1,14 @@
+{
+  "project_name": "my_beautiful_library",
+  "project_description": "My beautiful library",
+  "min_version_python": "3.13",
+  "type_lib": ["standard", "django"],
+  "license": ["MIT", "BSD-3-Clause", "Apache-2.0"],
+  "copyright_holder": "Your Name",
+
+  "_extensions": ["jinja2_git.GitExtension"],
+  "_copy_without_render": [
+    ".venv",
+    "docs/_build"
+  ]
+}

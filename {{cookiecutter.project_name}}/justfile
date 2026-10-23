@@ -1,0 +1,118 @@
+set positional-arguments
+set shell := ["bash", "-euo", "pipefail", "-c"]
+set dotenv-load := false
+
+# Cookiecutter sets the Python version when generating the project.
+export DEV_PYTHON := "{{ cookiecutter.min_version_python }}"
+
+# The environment is updated explicitly by install, upgrade, or reinstall.
+export UV_NO_SYNC := "1"
+
+export JUST_BIN := just_executable()
+export JUST_FILE := justfile()
+
+alias destroy := venv-remove
+alias mypy := type-mypy
+alias pyright := type-pyright
+
+# List available tasks
+_default:
+    @"$JUST_BIN" --justfile "$JUST_FILE" --list --unsorted
+
+_check-git:
+    @command -v git >/dev/null 2>&1 || { printf 'git was not found in PATH\n' >&2; exit 1; }
+
+_check-uv:
+    @command -v uv >/dev/null 2>&1 || { printf 'uv was not found in PATH\n' >&2; exit 1; }
+
+_check-all: _check-git _check-uv
+
+# Check the local development tools
+[group('dev')]
+doctor: _check-all
+    git --version
+    uv --version
+    "$JUST_BIN" --version
+
+# Install the project, all dependency groups, and Git hooks
+[group('dev')]
+install: _check-all
+    uv python pin "$DEV_PYTHON"
+    uv sync --all-groups --all-extras
+    uv run prek install --install-hooks
+
+# Remove the environment and artifacts, then reinstall the project
+[group('dev')]
+reinstall: _check-all venv-remove clean install
+
+# Update dependencies
+[group('dev')]
+upgrade: _check-all
+    uv lock --upgrade
+    uv sync --all-groups --all-extras
+    uv run prek autoupdate
+
+# Synchronize uv.lock with the current dependencies
+[group('dev')]
+lock: _check-uv
+    uv lock
+
+# Remove the virtual environment
+[group('cleanup')]
+venv-remove:
+    rm -rf -- .venv
+
+# Remove build, test, lint, and coverage artifacts
+[group('cleanup')]
+clean:
+    rm -rf -- \
+        .pytest_cache .ruff_cache .mypy_cache .hypothesis .precomcache \
+        build dist wheelhouse .eggs .egg \
+        htmlcov .coverage coverage.xml coverage.json
+
+# Run mypy
+[group('typing')]
+type-mypy *args: _check-uv
+    uv run python -m mypy -n 4 "$@"
+
+# Run Pyright
+[group('typing')]
+type-pyright *args: _check-uv
+    uv run python -m pyright "$@"
+
+# Run all type checkers
+[group('typing')]
+type-check: type-mypy type-pyright
+
+# Run tests
+[group('testing')]
+test *args: _check-uv
+    uv run python -m pytest -n 3 -q "$@"
+
+# Check code and formatting; default to the entire project
+[group('checks')]
+lint *paths: _check-uv
+    uv run python -m ruff check --no-fix "$@"
+    uv run python -m ruff format --check --diff "$@"
+
+# Format code and apply Ruff fixes
+[group('dev')]
+format *paths: _check-uv
+    uv run python -m ruff check --fix "$@"
+    uv run python -m ruff format "$@"
+
+# Run prek hooks on Git-tracked files, including automatic fixes
+[group('dev')]
+check *args: _check-uv
+    uv run prek run --all-files "$@"
+
+# Check the lockfile, installed environment, and dependency compatibility
+[group('checks')]
+package: _check-uv
+    uv lock --check
+    uv sync --all-groups --all-extras --locked --check
+    uv pip check
+
+# Check dependencies, code, formatting, types, and tests without applying fixes
+[group('checks')]
+check-all: package lint type-check test

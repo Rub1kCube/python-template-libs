@@ -1,0 +1,211 @@
+[build-system]
+build-backend = "hatchling.build"
+requires = [ "hatchling>=1.27" ]
+
+[project]
+name = "{{ cookiecutter.project_name }}"
+version = "0.0.1"
+description = "{{ cookiecutter.project_description }}"
+readme = "README.md"
+license = "{{ cookiecutter.license }}"
+license-files = [ "LICENSE" ]
+requires-python = ">={{cookiecutter.min_version_python}}"
+dependencies = [{% if cookiecutter.type_lib == "django" %} "django>=5.2,<5.3" {% endif %}]
+
+[dependency-groups]
+dev = [
+  { include-group = "lint" },
+  { include-group = "release" },
+  { include-group = "test" },
+  { include-group = "typing" },
+]
+test = [
+  "pytest>=9.1.1",
+  "pytest-cov>=7",
+  {% if cookiecutter.type_lib == "django" %}
+  "pytest-django",
+  {% endif %}
+  "pytest-randomly>=5",
+  "pytest-sugar>=1.1.1",
+  "pytest-xdist>=3.8",
+]
+lint = [
+  "prek>=0.5.2",
+  "ruff>=0.16.4",
+]
+release = [
+  "bump-my-version>=1.5.1",
+]
+typing = [
+  {% if cookiecutter.type_lib == "django" %}
+  "django-stubs[compatible-mypy]",
+  {% endif %}
+  "mypy>=2.2",
+  "pyright[nodejs]>=1.1.412",
+]
+
+[tool.hatch.build]
+targets.wheel.packages = [ "{{cookiecutter.project_name.lower().replace('-', '_')}}" ]
+targets.sdist.include = [ "{{cookiecutter.project_name.lower().replace('-', '_')}}" ]
+
+[tool.ruff]
+line-length = 120
+
+[tool.ruff.format]
+docstring-code-line-length = 88
+docstring-code-format = true
+
+[tool.ruff.lint]
+select = [ "ALL" ]
+ignore = [
+  "A003",    # flake8-builtins - class attribute {name} is shadowing a python builtin
+  "ANN401",  # flake8-annotations - Dynamically typed expressions (typing.Any) are disallowed
+  "B010",    # flake8-bugbear - do not call setattr with a constant attribute value
+  "COM812",  # conflict with formatter
+  "CPY001",  # missing-copyright-notice
+  "D100",    # pydocstyle - missing docstring in public module
+  "D101",    # pydocstyle - missing docstring in public class
+  "D102",    # pydocstyle - missing docstring in public method
+  "D103",    # pydocstyle - missing docstring in public function
+  "D104",    # pydocstyle - missing docstring in public package
+  "D105",    # pydocstyle - missing docstring in magic method
+  "D106",    # pydocstyle - missing docstring in public nested class
+  "D107",    # pydocstyle - missing docstring in __init__
+  "D202",    # pydocstyle - no blank lines allowed after function docstring
+  "D205",    # pydocstyle - 1 blank line required between summary line and description
+  "D212",    # Checks for docstring summary lines that are not positioned on the first physical line of the docstring.
+  "D415",    # pydocstyle - first line should end with a period, question mark, or exclamation point
+  "E501",    # pycodestyle line too long, handled by black
+  "FBT001",  # flake8-boolean-trap - Boolean-typed positional argument in function definition
+  "FBT002",  # flake8-boolean-trap - Boolean default positional argument in function definition
+  "ISC001",  # conflict with formatter
+  "N818",    # pep8-naming - exception name should be named with an Error suffix
+  "PLR0913", # Too many arguments in function definition
+  "RUF001",  # String contains ambiguous
+  "RUF002",  # ambiguous-unicode-character-docstring
+  "RUF003",  # comment contains ambiguous
+  "S311",    # flake8-bandit - Standard pseudo-random generators are not suitable for security/cryptographic purposes
+  "UP037",   # pyupgrade - removes quotes from type annotation
+]
+per-file-ignores."tests/**/*.*" = [
+  "A",
+  "ANN",
+  "ARG",
+  "ARG002",  # Investigate @guacs
+  "B",
+  "BLE",
+  "C901",
+  "D",
+  "DTZ",
+  "EM",
+  "FA",
+  "FBT",
+  "FBT",
+  "FIX",
+  "G",
+  "INP",
+  "N",
+  "PERF203", # Investigate @guacs
+  "PGH",
+  "PIE",
+  "PLR",
+  "PLR0913", # too many arguments
+  "PLW",
+  "PT",
+  "PT",
+  "PTH",
+  "RSE",
+  "RUF012",
+  "S",
+  "S101",
+  "SIM",
+  "SLF",
+  "TC",
+  "TD",
+  "TRY",
+]
+flake8-builtins.builtins-allowed-modules = [ "types" ]
+isort.combine-as-imports = true
+isort.force-single-line = false
+{% if cookiecutter.type_lib == "django" -%}
+isort.known-third-party = [ "django" ]
+{% endif -%}
+isort.lines-after-imports = 2
+isort.section-order = [ "future", "standard-library", "third-party", "first-party", "local-folder" ]
+isort.split-on-trailing-comma = true
+pydocstyle.convention = "google"
+
+[tool.pyproject-fmt]
+generate_python_version_classifiers = false
+table_format = "long"
+sub_table_spacing = "\n"
+separate_root_table = "\n\n"
+expand_tables = [ "project.optional-dependencies" ]
+collapse_tables = [ "project" ]
+
+[tool.mypy]
+files = [ "." ]
+{% if cookiecutter.type_lib == "django" -%}
+plugins = [ "mypy_django_plugin.main" ]
+{% endif -%}
+ignore_missing_imports = true
+warn_unreachable = true
+local_partial_types = true
+enable_error_code = [
+  "deprecated",
+  "explicit-override",
+  "ignore-without-code",
+  "mutable-override",
+  "possibly-undefined",
+  "redundant-expr",
+  "redundant-self",
+  "truthy-bool",
+  "truthy-iterable",
+  "unimported-reveal",
+  "unused-awaitable",
+]
+strict_bytes = true
+strict = true
+
+{% if cookiecutter.type_lib == "django" -%}
+[tool.django-stubs]
+django_settings_module = "tests.settings"
+
+{% endif -%}
+[tool.pyright]
+exclude = [ "**/.*", "**/__pycache__", "**/node_modules", ".venv" ]
+reportMissingImports = false
+
+[tool.pytest.ini_options]
+{% if cookiecutter.type_lib == "django" -%}
+DJANGO_SETTINGS_MODULE = "tests.settings"
+django_find_project = false
+pythonpath = [ "." ]
+{% endif -%}
+testpaths = [ "tests" ]
+norecursedirs = "*.egg .eggs dist build docs .tox .git __pycache__"
+python_files = [ "test_*.py" ]
+
+[tool.coverage.report]
+exclude_lines = [
+  '\.\.\.',
+  "except ImportError as e:",
+  "except ImportError:",
+  "if TYPE_CHECKING:",
+  "pragma: no cover",
+]
+
+[tool.coverage.run]
+omit = [ "*/tests/*" ]
+
+
+[tool.bumpversion]
+tag = true
+tag_name = "v{new_version}"
+tag_message = "Release {new_version}"
+commit = true
+message = "chore(release): bump {current_version} → {new_version}"
+pre_commit_hooks = [
+  "uv lock",
+  "git add uv.lock",
+]
