@@ -50,7 +50,7 @@ install: destroy clean
 	@uv venv >/dev/null 2>&1
 	@uv sync --all-groups --all-extras
 	@echo "${INFO} Installing Git hooks ⬇️"
-	prek install --install-hooks
+	@uv run prek install --install-hooks
 	@echo "${OK} Installation complete ✨! $(shell printf "$(BLUE)Note:$(NC)") To reinstall, run $(shell printf "$(GREAN)'make install'$(NC)")"
 
 .PHONY: upgrade
