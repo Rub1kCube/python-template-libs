@@ -15,9 +15,12 @@ alias destroy := venv-remove
 alias mypy := type-mypy
 alias pyright := type-pyright
 
+# Documentation module
+mod _docs 'docs/justfile'
+
 # List available tasks
 _default:
-    @"$JUST_BIN" --justfile "$JUST_FILE" --list --unsorted
+    @"$JUST_BIN" --justfile "$JUST_FILE" --list --unsorted --list-submodules
 
 _check-git:
     @command -v git >/dev/null 2>&1 || { printf 'git was not found in PATH\n' >&2; exit 1; }
@@ -68,7 +71,7 @@ clean:
     rm -rf -- \
         .pytest_cache .ruff_cache .mypy_cache .hypothesis .precomcache \
         build dist wheelhouse .eggs .egg \
-        htmlcov .coverage coverage.xml coverage.json
+        docs/_build htmlcov .coverage coverage.xml coverage.json
 
 # Run mypy
 [group('typing')]
@@ -113,6 +116,23 @@ package: _check-uv
     uv sync --all-groups --all-extras --locked --check
     uv pip check
 
-# Check dependencies, code, formatting, types, and tests without applying fixes
+# Build the HTML documentation
+[group('docs')]
+docs +targets='clean html': (_docs::build targets)
+
+# Build and serve the HTML documentation locally
+[group('docs')]
+docs-serve port='8000': docs
+    uv run python -m http.server "{{ '{{port}}' }}" --bind 127.0.0.1 --directory docs/_build/html
+
+# Build documentation strictly and run its doctests
+[group('docs')]
+docs-check: _docs::check
+
+# Check external links in the documentation
+[group('docs')]
+docs-linkcheck: _docs::linkcheck
+
+# Check dependencies, code, formatting, types, tests, and docs without applying fixes
 [group('checks')]
-check-all: package lint type-check test
+check-all: package lint type-check test docs-check

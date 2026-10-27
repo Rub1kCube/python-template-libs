@@ -1,0 +1,16 @@
+{
+  "$schema": "https://context7.com/schema/context7.json",
+{%- if 1 <= cookiecutter.project_name|length <= 100 %}
+  "projectTitle": {{ cookiecutter.project_name | tojson }},
+{%- endif %}
+{%- if 10 <= cookiecutter.project_description|length <= 500 %}
+  "description": {{ cookiecutter.project_description | tojson }},
+{%- endif %}
+  "folders": ["docs"],
+  "excludeFolders": ["docs/_build"],
+  "excludeFiles": [
+    "AGENTS.md",
+    "CONTRIBUTING.md",
+    "documentation-guidelines.rst"
+  ]
+}

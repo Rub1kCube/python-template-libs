@@ -23,6 +23,12 @@ repos:
       - id: ruff-check
         args: ["--fix"]
       - id: ruff-format
+  - repo: https://github.com/sphinx-contrib/sphinx-lint
+    rev: v1.0.2
+    hooks:
+      - id: sphinx-lint
+        args: ["--enable=all", "--disable=line-too-long"]
+        files: ^docs/
   - repo: https://github.com/astral-sh/uv-pre-commit
     rev: 0.13.5
     hooks:

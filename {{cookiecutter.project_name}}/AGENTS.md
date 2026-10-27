@@ -8,6 +8,7 @@ source of truth for commands; run `just` to list the available recipes.
 - Python version for development: `{{ cookiecutter.min_version_python }}`.
 - Library code: `{{ cookiecutter.project_name.lower().replace('-', '_') }}/`.
 - Tests: `tests/`.
+- Documentation: `docs/`.
 - Dependencies and tool configuration: `pyproject.toml`.
 - Resolved dependency versions: `uv.lock`.
 {% if cookiecutter.type_lib == "django" -%}
@@ -37,7 +38,10 @@ automatically. There is no need to activate `.venv` manually.
 | `just type-check` | Run both mypy and Pyright. |
 | `just mypy` / `just pyright` | Run one type checker. |
 | `just package` | Check the lockfile, installed environment, and dependency compatibility. |
-| `just check-all` | Run `package`, `lint`, `type-check`, and `test`. |
+| `just docs` | Build the HTML documentation. |
+| `just docs-check` | Build documentation strictly and run its doctests. |
+| `just docs-linkcheck` | Check external links in the documentation. |
+| `just check-all` | Run `package`, `lint`, `type-check`, `test`, and `docs-check`. |
 | `just check` | Run prek hooks on all Git-tracked files, with automatic fixes. |
 
 `just lint` and `just format` accept file or directory paths and default to the
@@ -45,14 +49,75 @@ entire project. `just test`, `just mypy`, and `just pyright` forward extra argum
 to their tools. The type-checker aliases also have the names `just type-mypy` and
 `just type-pyright`.
 
-While working, run the checks relevant to the change. Use `just format` when
-formatting or lint fixes are needed, then run `just check-all` before handing off
-code changes. Report the checks run and any failures or checks you could not run.
+## Code verification
+
+Run verification commands from the repository root:
+
+- Tests: `just test`.
+- Linting and formatting check: `just lint`.
+- Formatting and automatic fixes: `just format`.
+- Static type analysis: `just type-check`.
+- Documentation: `just docs-check`.
+- Full verification: `just check-all`.
+
+After changing code:
+
+1. Run `just format`.
+2. Run the checks relevant to the changed code.
+3. Run `just check-all` before committing or handing off the change.
+4. Report which checks were run and whether they passed. Include any failures or
+   checks that could not be run.
 
 `just check` may modify files, including `uv.lock`; inspect its changes. Hooks
 also run when committing. After dependency changes, run `just install` and repeat
-the checks. `just package` validates dependencies; use `uv build` when a task
-requires building wheel and source distributions, since there is no build recipe.
+the checks. Unlike `just format` and `just check`, `just check-all` is intended to
+verify the project without applying fixes. `just package` validates dependencies;
+use `uv build` when a task requires building wheel and source distributions, since
+there is no build recipe.
+
+## External dependency documentation
+
+- When a task needs documentation for a dependency's API, behavior, or
+  configuration, use Context7 if its tools are available.
+- Identify the dependency version in `uv.lock` and request documentation for that
+  version when available. Before the first lockfile is generated, use the
+  constraints in `pyproject.toml` and state any uncertainty about the exact version.
+- Resolve the library's Context7 ID before querying its documentation, unless a
+  verified ID is already available. Check that examples apply to the project's
+  dependency version before using them.
+- If Context7 is unavailable or lacks the required library or version, consult
+  official versioned documentation or the installed package's source and
+  docstrings. Context7 availability must not block development or verification.
+- Use this repository's code and documentation to understand the library being
+  developed; an external index may lag behind local changes.
+
+See [Context7 setup](CONTRIBUTING.md#context7-optional) for optional client setup
+and the separate process for indexing this library's published documentation.
+
+## Documentation rules
+
+A change to public behavior is incomplete until its docstrings, guides, and API
+reference are updated and `just docs-check` passes. Follow the complete
+[documentation guidelines](docs/pages/documentation-guidelines.rst).
+
+- Document every new or changed public module, class, function, method, and
+  attribute. Do not document private implementation details unless they explain
+  an important constraint.
+- Use Google-style docstrings. Keep types in Python annotations instead of
+  repeating them in docstrings.
+- Include `Args`, `Returns`, `Yields`, and `Raises` only when applicable. Explain
+  behavior, constraints, side effects, and exceptions rather than restating names.
+- Use Sphinx roles such as `:class:`, `:func:`, `:meth:`, `:attr:`, and `:doc:`
+  for internal references. Prefer fully qualified targets when a reference could
+  be ambiguous.
+- Put stable, executable examples in `.. doctest::` blocks. Use `.. code-block::`
+  for illustrative examples that require network access, nondeterministic values,
+  external services, or extensive setup.
+- Add public modules and objects to `docs/pages/api-reference.rst`; add conceptual
+  or task-oriented documentation to the appropriate guide and to a `toctree`.
+- Never edit generated files under `docs/_build/`.
+- Run `just docs-check` after changing public APIs or documentation. Run
+  `just docs-linkcheck` when adding or changing external links.
 
 ## Dependency maintenance and cleanup
 

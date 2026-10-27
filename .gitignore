@@ -30,6 +30,28 @@ htmlcov/
 coverage.*
 setup.py
 
+# AI
+.claude
+.cursor
+.scratch/
+docs/agents/
+docs/adr/
+CONTEXT.md
+# locally installed agent skills (project-owned ones are un-ignored below)
+.agents/skills/*
+skills-lock.json
+# local agent config
+.mcp.json
+mcp.json
+# Added by codegraph
+.codegraph
+codegraph.mdc
+# Added by code-review-graph
+.code-review-graph/
+# Added by graphify
+graphify-out/
+.graphifyignore
+
 # pdm
 #   Similar to Pipfile.lock, it is generally recommended to include pdm.lock in version control.
 #pdm.lock

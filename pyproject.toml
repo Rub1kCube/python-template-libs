@@ -29,6 +29,7 @@ test = [
   "hatchling>=1.27",
   "pytest>=9.1.1",
   "pytest-cookies>=0.7",
+  "pytest-randomly>=5",
   "pytest-sugar>=1.1.1",
 ]
 lint = [
