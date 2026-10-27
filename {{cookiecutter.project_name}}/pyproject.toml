@@ -14,10 +14,25 @@ dependencies = [{% if cookiecutter.type_lib == "django" %} "django>=5.2,<5.3" {%
 
 [dependency-groups]
 dev = [
+  { include-group = "docs" },
   { include-group = "lint" },
   { include-group = "release" },
   { include-group = "test" },
   { include-group = "typing" },
+]
+docs = [
+  "docutils>=0.22,<0.23",
+  "myst-parser>=5,<6",
+  "shibuya>=2026.1,<2027",
+  "sphinx>=9,<10",
+  "sphinx-autodoc-typehints>=3,<4",
+  "sphinx-contributors>=0.2,<0.4",
+  "sphinx-copybutton>=0.5,<0.6",
+  "sphinx-design>=0.7,<0.8",
+  "sphinx-iconify>=0.3,<0.4",
+  "sphinx-llm-friendly>=0.5,<0.8",
+  "sphinx-tabs>=3.5,<4",
+  "sphinxcontrib-mermaid>=2,<3",
 ]
 test = [
   "pytest>=9.1.1",
